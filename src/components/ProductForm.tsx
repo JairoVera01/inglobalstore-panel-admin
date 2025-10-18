@@ -1,6 +1,7 @@
 'use client'
 
 import { Product } from '@/types/database'
+import Link from 'next/link'
 
 interface ProductFormProps {
     product?: Product
@@ -122,7 +123,7 @@ export default function ProductForm({ product, action, submitLabel }: ProductFor
                     </svg>
                     {submitLabel}
                 </button>
-                <a
+                <Link
                     href="/products"
                     className="flex-1 flex justify-center items-center text-center border-2 border-gray-300 hover:border-gray-400 bg-white hover:bg-gray-50 text-gray-700 font-semibold px-6 py-4 rounded-xl transition-all shadow-sm hover:shadow-md focus:outline-none focus:ring-4 focus:ring-gray-200"
                 >
@@ -130,7 +131,7 @@ export default function ProductForm({ product, action, submitLabel }: ProductFor
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                     Cancelar
-                </a>
+                </Link>
             </div>
         </form>
     )
