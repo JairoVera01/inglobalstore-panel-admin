@@ -1,7 +1,9 @@
 'use client'
 
 import { Product } from '@/types/database'
+import { useState } from 'react'
 import Link from 'next/link'
+import MultiImageUploader from './MultiImageUploader'
 
 interface ProductFormProps {
     product?: Product
@@ -10,6 +12,38 @@ interface ProductFormProps {
 }
 
 export default function ProductForm({ product, action, submitLabel }: ProductFormProps) {
+    // Debug: Ver qué datos llegan
+    console.log('ProductForm - product:', product);
+    console.log('ProductForm - product.images:', product?.images);
+    console.log('ProductForm - product.images type:', typeof product?.images);
+
+    // Inicializar con las imágenes existentes
+    let initialImages = [];
+
+    // Si product.images es un array válido
+    if (product?.images && Array.isArray(product.images) && product.images.length > 0) {
+        initialImages = product.images;
+    }
+    // Si product.images es un string JSON, parsearlo
+    else if (product?.images && typeof product.images === 'string') {
+        try {
+            const parsed = JSON.parse(product.images);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                initialImages = parsed;
+            }
+        } catch (e) {
+            console.error('Error parsing images JSON:', e);
+        }
+    }
+    // Fallback: usar image_url si existe
+    if (initialImages.length === 0 && product?.image_url) {
+        initialImages = [{ url: product.image_url, isPrimary: true, order: 0 }];
+    }
+
+    console.log('ProductForm - initialImages:', initialImages);
+
+    const [images, setImages] = useState(initialImages)
+
     return (
         <form action={action} className="max-w-2xl mx-auto space-y-6">
             <div>
@@ -94,23 +128,27 @@ export default function ProductForm({ product, action, submitLabel }: ProductFor
             </div>
 
             <div>
-                <label htmlFor="image_url" className="block text-sm font-semibold text-gray-700 mb-2">
-                    URL de la Imagen
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Imágenes del Producto
                 </label>
+                <MultiImageUploader
+                    onImagesChange={(imgs) => setImages(imgs)}
+                    initialImages={initialImages}
+                />
+                {/* Campo oculto para enviar la URL principal */}
                 <input
-                    type="url"
+                    type="hidden"
                     id="image_url"
                     name="image_url"
-                    defaultValue={product?.image_url}
-                    className="w-full px-4 py-3 text-gray-900 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400"
-                    placeholder="https://ejemplo.com/imagen.jpg"
+                    value={images.find((img) => img.isPrimary)?.url || images[0]?.url || ''}
                 />
-                <p className="mt-2 text-xs text-gray-500 flex items-center">
-                    <svg className="w-4 h-4 mr-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Ingresa la URL completa de la imagen del producto
-                </p>
+                {/* Campo oculto para enviar el array completo de imágenes */}
+                <input
+                    type="hidden"
+                    id="images_json"
+                    name="images_json"
+                    value={JSON.stringify(images)}
+                />
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-4">

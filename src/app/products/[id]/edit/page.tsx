@@ -2,18 +2,45 @@ import { createClient } from '@/lib/utils/supabase/server'
 import ProductForm from '@/components/ProductForm'
 import { updateProduct } from '@/lib/actions/products'
 import { notFound } from 'next/navigation'
+import { ProductImage } from '@/types/database'
 
 export default async function EditProductPage({ params }: { params: { id: string } }) {
     const supabase = await createClient()
+
+    // Obtener producto con sus imágenes de la tabla product_images
     const { data: product, error } = await supabase
         .from('products')
-        .select('*')
+        .select(`
+            *,
+            product_images (
+                id,
+                image_url,
+                is_primary,
+                display_order,
+                alt_text
+            )
+        `)
         .eq('id', params.id)
         .single()
 
     if (error || !product) {
+        console.error('Error fetching product:', error)
         notFound()
     }
+
+    // Convertir product_images a formato ImageData para el formulario
+    const productWithImages = {
+        ...product,
+        images: (product.product_images as unknown as ProductImage[])
+            ?.sort((a: ProductImage, b: ProductImage) => a.display_order - b.display_order)
+            .map((img: ProductImage) => ({
+                url: img.image_url,
+                isPrimary: img.is_primary,
+                order: img.display_order
+            })) || []
+    }
+
+    console.log('Product with images:', productWithImages)
 
     const updateProductWithId = async (formData: FormData) => {
         'use server'

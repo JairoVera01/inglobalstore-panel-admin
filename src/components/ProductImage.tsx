@@ -54,7 +54,7 @@ export default function ProductImage({
             className={className}
             onError={() => setImageError(true)}
             priority={priority}
-            unoptimized={src.includes('example.com')}
+            unoptimized={src.includes('example.com') || src.includes('supabase.co')}
         />
     )
 }
